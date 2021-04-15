@@ -82,7 +82,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	mrand "math/rand"
 	"net/http"
 	"net/url"
