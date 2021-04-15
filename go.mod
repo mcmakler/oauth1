@@ -1,1 +1,3 @@
-module github.com/gomodule/oauth1
+module github.com/mcmakler/oauth1
+
+go 1.14
