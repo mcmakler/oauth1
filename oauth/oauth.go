@@ -78,17 +78,17 @@ import (
 	"crypto/rsa"
 	"crypto/sha1"
 	"encoding/base64"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
+	mrand "math/rand"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
-	"sync/atomic"
 	"time"
 )
 
@@ -227,18 +227,54 @@ func writeBaseString(w io.Writer, method string, u *url.URL, form url.Values, oa
 	}
 }
 
-var nonceCounter uint64
+// var nonceCounter uint64
 
-func init() {
-	if err := binary.Read(rand.Reader, binary.BigEndian, &nonceCounter); err != nil {
-		// fallback to time if rand reader is broken
-		nonceCounter = uint64(time.Now().UnixNano())
-	}
+// func init() {
+// 	if err := binary.Read(rand.Reader, binary.BigEndian, &nonceCounter); err != nil {
+// 		// fallback to time if rand reader is broken
+// 		nonceCounter = uint64(time.Now().UnixNano())
+// 	}
+// }
+
+// // nonce returns a unique string.
+// func nonce() string {
+// 	return strconv.FormatUint(atomic.AddUint64(&nonceCounter, 1), 16)
+// }
+
+// exports.OAuth.prototype.NONCE_CHARS= ['a','b','c','d','e','f','g','h','i','j','k','l','m','n',
+//               'o','p','q','r','s','t','u','v','w','x','y','z','A','B',
+//               'C','D','E','F','G','H','I','J','K','L','M','N','O','P',
+//               'Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3',
+//               '4','5','6','7','8','9'];
+
+// exports.OAuth.prototype._getNonce= function(nonceSize) {
+//    var result = [];
+//    var chars= this.NONCE_CHARS;
+//    var char_pos;
+//    var nonce_chars_length= chars.length;
+
+//    for (var i = 0; i < nonceSize; i++) {
+//        char_pos= Math.floor(Math.random() * nonce_chars_length);
+//        result[i]=  chars[char_pos];
+//    }
+//    return result.join('');
+// }
+
+var nonceChars = []rune{
+	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+	'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B',
+	'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3',
+	'4', '5', '6', '7', '8', '9',
 }
 
-// nonce returns a unique string.
 func nonce() string {
-	return strconv.FormatUint(atomic.AddUint64(&nonceCounter, 1), 16)
+	var result []rune
+	for ii := 0; ii < 32; ii++ {
+		cpos := mrand.Int31n(int32(len(nonceChars)))
+		result = append(result, nonceChars[cpos])
+	}
+	return string(result)
 }
 
 // SignatureMethod identifies a signature method.
